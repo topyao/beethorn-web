@@ -1,10 +1,4 @@
-# 蜂刺轻内容管理系统
-
-![img](https://yxh-1301841944.cos.ap-chongqing.myqcloud.com/gfast/2022-04-19/gfastlogo.png)
-
-
-
-# BeeThorn V0.1.5
+# 蜂刺轻内容管理系统 BeeThorn V0.1.5
 
 [![goframe](https://img.shields.io/badge/goframe-1.x-brightgreen) ](https://gitee.com/link?target=https%3A%2F%2Fgoframe.org%2Fpages%2Fviewpage.action%3FpageId%3D1114119)[ ](https://img.shields.io/badge/vue-2-brightgreen)[![vue](https://img.shields.io/badge/vue-2.x-brightgreen) ](https://element-plus.gitee.io/#/zh-CN/component/changelog)[![nuxt](https://img.shields.io/badge/nuxt-2.x-orange) ](https://gitee.com/link?target=https%3A%2F%2Fwww.tslang.cn%2F)
 
@@ -32,6 +26,14 @@
 > 项目使用前后端化的方式开发，目前开发计划中有：基于flutter的app，uniapp的h5以及消除...，同时也欢迎大家有好的建议反馈给我，我来帮您实现技术变现，获取收益！
 
 > 我开源以来得到了大家的很多支持，如果您愿意为我贡献的代码或提供建议，请加微信：973728679(备注：蜂刺)
+
+## 源码仓库地址
+
+前台仓库git：https://github.com/EForinaJ/beethorn-web
+
+后台仓库git：https://github.com/EForinaJ/beethorn-admin
+
+服务端仓库git：https://github.com/EForinaJ/beethorn-serve
 
 ## 演示地址
 
@@ -89,4 +91,7 @@
 
 ## 支持开源
 
-如果您喜爱蜂刺（BeeThorn），请给常熬夜的作者资金赞助一下吧！[ 点我送咖啡](https://gitee.com/link?target=https%3A%2F%2Fys0abw.yuque.com%2Fys0abw%2Fephcr9%2Fzo38ua)
+如果您喜爱蜂刺（BeeThorn），请给常熬夜的作者资金赞助一下吧！
+
+![img](http://beethorn.com/public/uploads/2022-06-01/ckeqbzdsclv0qnccyn.png)
+
