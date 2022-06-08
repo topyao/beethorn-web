@@ -103,9 +103,21 @@
                     </div>
                 </div>
             </li>
-            <li @click="viewInfo" v-if="list.length > 4" class="more">
+            <!-- <li @click="viewInfo" v-if="list.length > 4" class="more">
                 查看更多答案
-            </li>
+            </li> -->
+            <div v-if="list.length > 0" class="comment-list-nomore">
+               <a-config-provider :locale="locale">
+                    <a-pagination
+                        @change="changePage"
+                        v-model="queryParam.page"
+                        :pageSize="queryParam.limit"
+                        :total="total"
+                        size="small"
+                    >
+                    </a-pagination>
+                </a-config-provider>
+            </div>
         </ul>
         <ul v-if="loading">
             <li >

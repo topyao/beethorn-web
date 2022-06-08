@@ -1,98 +1,93 @@
 <template>
     <div class="detail">
-        <div class="info" :style="{ width: design.width + 'px' }">
+        <div class="info" :style="{ width: design.width - 300 + 'px' }">
             <a-row :gutter="[{md:12}]">
                 <a-col :span="18">
                     <div class="feed-info">
                         <div class="user-info">
-                            <div class="user-info-l">
+                            <div class="user">
                                 <nuxt-link :to="{path:'/profile/' + info.userInfo.id }" class="item-link">   
-
                                     <Avatar 
                                         class="user-avatar"
                                         :verifyRight="-5"
                                         :verifyBottom="5"
                                         :isVerify="info.userInfo.isVerify"
-                                        shape="circle" 
+                                        shape="square" 
                                         :src="info.userInfo.avatar+'@w60_h60'" 
                                         :size="45"
                                     />
                                 </nuxt-link>
-                                <div class="user-name-box">
-                                    <nuxt-link :to="{path:'/profile/' + info.userInfo.id }" class="item-link">   
-                                        <h2 class="user-name">{{info.userInfo.nickName}}</h2>
+                                <div class="nick-name-lv">
+                                    <nuxt-link class="user-name" :to="{path:'/profile/' + info.userInfo.id }">   
+                                        <h2 >{{info.userInfo.nickName}}</h2>
                                     </nuxt-link>
-                                    <div  class="user-role">
-                                        <a-space>
-                                            <img :src="info.userInfo.grade.icon" :alt="info.userInfo.grade.title">
-                                            <img v-if="info.userInfo.vip" :src="info.userInfo.vip.icon" :alt="info.userInfo.vip.title">
-                                        </a-space>
+                                    <div class="lv-vip-sm">
+                                        <!-- <span :style="{color: 'red',fontSize: '12px'}">Vip1</span> -->
+                                        <span class="lv">{{info.userInfo.grade.title}}</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="user-info-r">
-                                <a-button @click="remove" v-if="userInfo.userId == info.userInfo.id" type="link" icon="delete">
-                                    删除
-                                </a-button>
-                                <a-button @click="report" type="link" icon="info-circle">
-                                    举报
-                                </a-button>
+                            <div class="group" @click="goGroup(info.groupInfo.id)">
+                                <span class="group-icon">#</span>
+                                <span class="title">{{info.groupInfo.title}}</span>
                             </div>
                         </div>
-                        <div  class="feed-content">
-                            <div>
-                                <p class="feed-text">{{info.title}}</p>
-                                <div v-if="info.type == 1" class="feed-img-box">
-                                    <div v-if="info.files.length == 1" class="feed-img-one" :style="{ width: this.width + 'px'}">
-                                        <img  :src="info.files[0]">
-                                    </div>
-                                    <ul v-if="info.files.length > 1">
-                                        <li v-for="(item,index) in info.files.slice(0, 3)" :key="index">
-                                            <div>
-                                                <img :src="item" alt="">
-                                                <span v-if="index === 2 && info.files.length > 3" class="image-number">
-                                                    +<b v-text="info.files.length - 3"></b>
-                                                </span>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div @click="goRelated" v-if="info.type == 2" class="feed-share-box">
-                                    <img class="cover" :src="info.relatedInfo.cover" :alt="info.relatedInfo.title">
-                                    <div class="title-desc">
-                                        <h2>{{info.relatedInfo.title}}</h2>
-                                    </div>
-                                </div>
+                        <div class="feed-centet">
+                            <p>
+                                <span v-if="info.type == 2" class="question">问题</span>
+                                {{info.title}}
+                            </p>
+                            
+                            <!-- 图片 -->
+                            <div v-if="info.type == 1 && info.files !=''">
+                                <ImageAdaptation :list="info.files"/>
+                            </div>
+
+                            <!-- 链接 -->
+                            <div v-if="info.relatedInfo.module != ''&&info.relatedInfo.id != 0">
+                                <LinkAdaptation :info="info.relatedInfo"/>
                             </div>
                         </div>
-                        <div class="feed-meta">
-                            <div class="feed-meta-l">
-                                <button @click="postLike" class="text">
+                        <div class="feed-bottom">
+                            <div class="tools">
+                                <span @click="postLike" class="like mrt20">
                                     <a-icon :theme="info.isLike ? 'filled' : 'outlined'" type="like" />
                                     <span>{{info.isLike ? '已赞' : '赞'}} </span>
                                     <b>{{info.likes == 0 ? "" : info.likes}}</b>
-                                </button>
-                                <button 
-                                    v-clipboard:copy="'aasdasdasd'"
-                                    v-clipboard:success="onCopy" class="text">
-                                    <a-icon type="share-alt" />
-                                    <span>复制链接</span>
-                                </button>
-                                <nuxt-link  :to="`/group/${info.groupInfo.id}`" class="item-link"> 
-                                    <a-tag color="#f50">
-                                        #{{info.groupInfo.title}}
-                                    </a-tag>
-                                </nuxt-link>
-                            </div>
-                            <div class="feed-meta-r">
-                                <span class="feed-meta-date">
+                                </span>
+                                <span class="date mrt20">
                                     {{info.createTime | resetData}}
                                 </span>
+                                <a-dropdown placement="bottomCenter">
+                                    <a class="share" @click="e => e.preventDefault()">
+                                        更多 <a-icon type="down" />
+                                    </a>
+                                    <a-menu slot="overlay">
+                                        <a-menu-item key="1" @click="report"><a-icon type="info-circle" />举报</a-menu-item>
+                                        <a-menu-item key="2" 
+                                            v-clipboard:copy="`${base.url}/feed/${info.id}`"
+                                            v-clipboard:success="onCopy"><a-icon type="copy" />分享</a-menu-item>
+                                    </a-menu>
+                                </a-dropdown>
+                            </div>
+                            <div class="commnet-answer">
+                                <span @click="openAnswer" v-if="info.type == 2" class="answer">我来回答</span> 
+                                <div @click="openComment" class="comment">
+                                    评论 {{info.comments == 0 ? '' : info.comments}}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="comment-box">
-                        <Comment  module="topic" :relatedId="id"/>
+                    <!-- 评论 -->
+                   
+                    <div v-if="isopenComment" class="item-comment">
+                        <CommentList  module="topic" :relatedId="info.id"/>
+                    </div>
+
+                    <!-- 回答 -->
+            
+                    <div v-if="isopenAnswer" class="item-comment">
+                        <Answer :authorId="info.userInfo.id" :topicId="info.id"/>
                     </div>
                 </a-col>
                 <a-col :span="6">
@@ -106,6 +101,8 @@
 
 
 <script>
+import LinkAdaptation from "@/components/adaptation/link"
+import ImageAdaptation from "@/components/adaptation/image"
 import Avatar from "@/components/avatar/avatar"
 import Comment from "@/components/comment/List"
 import SidebarUserInfo from "@/components/sidebar/sidebarUserInfo"
@@ -118,6 +115,8 @@ export default {
         ...mapState("user",["token","userInfo"]),
     },
     components:{
+        LinkAdaptation,
+        ImageAdaptation,
         Avatar,
         Comment,
         SidebarUserInfo,
@@ -150,7 +149,9 @@ export default {
         return {
             base:store.state.base,
             id:id,
-            info:res.data.info
+            info:res.data.info,
+            isopenComment:true,
+            isopenAnswer:false,
         }
     },
     methods: { 
@@ -162,6 +163,14 @@ export default {
         },
         report(){
             this.$Report(this.id,"topic")
+        },
+        openComment(){
+            this.isopenAnswer = false
+            this.isopenComment = !this.isopenComment
+        },
+        openAnswer(){
+            this.isopenComment = false
+            this.isopenAnswer = !this.isopenAnswer
         },
         async postLike(){
             if (this.token == null) {
@@ -251,203 +260,150 @@ export default {
         .feed-info{
             background: white;
             padding: 20px;
+
             .user-info{
                 display: flex;
+                align-items: center;
                 justify-content: space-between;
-                .user-info-l{
+                .user{
                     display: flex;
                     align-items: center;
-                    margin-right: 10px;
-                    .user-name-box{
-                        .user-name{
-                            font-size: 14px;
-                        }
-                        .user-meta{
-                            font-size: 12px;
-                        }
-                        .user-role{
-                            img{
-                                max-height: 18px;
-                                max-width: 18px;
-                            }
-                        }
-                    }
-                }
-                .user-info-r{
-                    color: #d0d4dc;
-                    font-size: 14px;
-                    /deep/ .ant-btn-link{
-                        color: #d0d4dc;
-                    }
-                }
-            }
-            .feed-content{
-                margin: 10px 0;
-                .feed-text{
-                    font-size: 14px!important;
-                }
-                .feed-img-box{
-                    margin: 10px 0;
-                    .feed-img-one{
-                        img{
-                            width: 100%;
-                            height: 100%;
-                        }
-                    }
-                    ul{
+                    .nick-name-lv{
+                        height: 40px;
                         display: flex;
-                        margin: -5px;
-                        li{
-                            width: 33.333333%;
-                            padding: 5px;
-                            div{
-                                height: 0;
-                                padding-top: 100%;
-                                cursor: pointer;
-                                overflow: hidden;
-                                position: relative;
-                                transition: padding-top .2s;
-                                max-width: 100%;
-                                img{
-                                    position: absolute;
-                                    left: 0;
-                                    top: 0;
-                                    background-color: #f5f5f5;
-                                    width: 100%;
-                                    height: 100%;
-                                    display: block;
-                                }
-                                .image-number{
-                                    position: absolute;
-                                    right: 10px;
-                                    top: 10px;
-                                    height: 24px;
-                                    line-height: 24px;
-                                    border-radius: 15px;
-                                    -webkit-backdrop-filter: blur(5px);
-                                    backdrop-filter: blur(5px);
-                                    padding: 0 8px;
-                                    font-size: 13px;
-                                    font-weight: 500;
-                                    color: #fff;
-                                    white-space: nowrap;
-                                    background-color: rgba(26,26,26,.3);
-                                }
-                                
+                        // align-items: center;
+                        justify-content: space-between;
+                        flex-direction: column;
+                        .user-name{
+                            h2{
+                                font-size: 15px;
+                                color: #494b4d;
+                                font-weight: 600;
+                            }
+                        }
+                        .lv-vip-sm{
+                            .lv{
+                                font-size: 12px;
+                                background-color: rgba(173, 173, 173,0.16);
+                                padding: 0 5px;
+                                height: 17px;
+                                line-height: 17px;
                             }
                         }
                     }
                 }
-                .feed-share-box{
+                .group{
                     cursor: pointer;
-                    margin: 10px 0;
-                    margin-top: 10px;
-                    background-color: #F7F8FA;
+                    user-select: none;
                     display: flex;
-                    cursor: pointer;
-                    .cover{
-                        height: 80px;
-                        width: 80px;
+                    // align-items: start;
+                    padding: 4px 10px;
+                    color: #8590a6;
+                    .group-icon{
+                        color: #8590a6;
+                        margin-right: 6px;
+                        font-size: 12px;
+                        background: rgba(173, 173, 173, 0.16);
+                        // padding: 0px 4px;
+                        border-radius: 80%;
                     }
-                    .title-desc{
-                        flex:1;
-                        margin-left: 10px;
-                        margin-top: 5px;
-                        h2{
-                            font-size: 18px;
-                            font-weight: bold;
-                            display: -webkit-box;
-                            -webkit-box-orient: vertical;
-                            -webkit-line-clamp: 1;
-                            overflow: hidden;
-                            text-justify: inter-ideograph;
-                            word-break: break-all;
-                        }
-                        p{
-                            font-size: 14px;
-                            font-weight: bold;
-                            display: -webkit-box;
-                            -webkit-box-orient: vertical;
-                            -webkit-line-clamp: 2;
-                            overflow: hidden;
-                            text-justify: inter-ideograph;
-                            word-break: break-all;
-                        }
-                    }
-                }
-                .feed-show{
-                    position: relative;
-                    background: #f5f5f5;
-                    max-width: 390px;
-                    width: 100%;
-                    margin-top: 10px;
-                    padding: 16px;
-                    .feed-show-desc{
-                        padding-bottom: 10px;
-                        border-bottom: 1px solid #e5e5e5;
-                        margin-bottom: 10px;
+                    .title{
                         font-size: 13px;
-                        line-height: 1;
                     }
-                    .feed-show-ac{
-                        p{
-                            margin-bottom: 16px;
-                            font-size: 12px;
-                            color: #878787;
-                        }
+
+                }
+                .group:hover{
+                    border-radius: 15px;
+                    
+                    background: rgba(173, 173, 173, 0.16);
+                }
+            }
+            .feed-centet{
+                margin-top: 10px;
+                p{
+                    cursor: pointer;
+                    user-select: none;
+                    line-height: 20px;
+                    font-size: 16px;
+                    color: #0b0b37;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 2;
+                    overflow: hidden;
+                    word-break: break-all;
+                    .question{
+                        border-top-left-radius: 13px;
+                        border-bottom-right-radius: 13px;
+                        color: white;
+                        font-size: 12px;
+                        padding: 3px 8px;
+                        background: linear-gradient(140deg, #039ab3 10%, #58dbcf 90%);
                     }
                 }
             }
-            .feed-meta{
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                .feed-meta-l{
+            .feed-bottom{
+                margin-top: 10px;
                     display: flex;
-                    position: relative;
-                    .text{
-                        outline: none;
-                        -webkit-tap-highlight-color: rgba(0,0,0,0);
-                        font-family: font-regular,'Helvetica Neue',sans-serif;
-                        border: 1px solid #ccc;
-                        box-sizing: border-box;
-                        margin-right: 10px;
-                        font-size: 12px;
-                        border-radius: 2px;
-                        border: 0;
-                        padding: 0 6px;
-                        background: #f5f5f5;
-                        color: #b9b9b9;
-                        cursor: pointer;
-                        font-weight: 400;
+                    justify-content: space-between;
+                    align-items: center;
+                    .tools{
                         display: flex;
                         align-items: center;
-                        span{
-                            padding: 0 3px;
-                            margin: 0;
+                        .like{
+                            cursor: pointer;
+                            user-select: none;
+                            // line-height: 20px;
+                            color: #8590a6;
+                            .icon{
+                                font-size: 18px;
+                            }
+                            font-size: 13px;
+                            padding: 5px;
+                            border-radius: 4px;
+                            background: rgba(173, 173, 173, 0.16);
+                        }
+                        .date{
+                            color: #8590a6;
+                            font-size: 13px;
+                        }
+                        .share{
+                            font-size: 13px;
+                            // padding: 5px 10px;
+                            cursor: pointer;
+                            user-select: none;
+                            color: #8590a6;
                         }
                     }
                     
-                }
-                .feed-meta-r{
-                    .feed-meta-date{
-                        height: 20px;
-                        line-height: 20px;
-                        font-size: 12px;
-                        color: #b9b9b9;
+                    .commnet-answer{
+                        display: flex;
+                        align-items: center;
+                        .answer{
+                            cursor: pointer;
+                            user-select: none;
+                            font-size: 13px;
+                            color: #1e80ff;
+                            margin-right: 10px;
+                        }
+                        .comment{
+                            cursor: pointer;
+                            user-select: none;
+                            font-size: 15px;
+                            color: #8590a6;
+                            background: 0 0;
+                            padding: 5px 10px;
+                            display: block;
+                            border-radius: 3px;
+                            box-shadow: 1px 1px 1px 1px #90909021;
+                            border: 0;
+                        }
                     }
-                }
             }
         }
-        .comment-box{
+        .item-comment{
+            background: white;
             margin: 20px 0;
-            padding: 20px;
-            background: white; 
-            ul{
-                li{
-                    margin-bottom: 10px;
-                }
-            }
+            padding: 10px;
         }
     }  
 }
