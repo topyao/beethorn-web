@@ -175,6 +175,7 @@ export default {
 
             const qrRes = await this.$axios.post(api.postOrderPay,{orderNum:res.data.orderNum})
             if (qrRes.code != 1) {
+                this.throttl(10000)
                 this.$message.error(
                     qrRes.message,
                     3
@@ -182,16 +183,16 @@ export default {
                 return
             }
             if(qrRes.data.info.isPay && qrRes.data.info.payMethod == 3){
-                this.throttl(5000)
+                this.throttl(10000)
                 this.ascertain()
                 return
             }
             this.close()
-            this.throttl(5000)
+            this.throttl(10000)
             if (this.payActiveKey != 3) {
                  this.$QrCode(this.title,formData.orderMoney,this.payActiveKey,qrRes.data.info.orderNum,qrRes.data.info.orderNum).then((res)=>{
                     if (res != false) {
-                        this.throttl(5000)
+                        this.throttl(10000)
                         this.ascertain()
                     }
                 }).catch((err)=>{

@@ -81,7 +81,7 @@ export default {
                 this.$Auth("login","登录","快速登录")
                 return
             }
-             if (this.id == this.userInfo.userId) {
+            if (this.id == this.userInfo.userId) {
                 this.$message.error(
                     "哪有自己给自己打赏的？",
                     3

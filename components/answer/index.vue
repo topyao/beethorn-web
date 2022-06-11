@@ -106,7 +106,7 @@
             <!-- <li @click="viewInfo" v-if="list.length > 4" class="more">
                 查看更多答案
             </li> -->
-            <div v-if="list.length > 0" class="comment-list-nomore">
+            <div v-if="list.length > 0" class="answer-list-nomore">
                <a-config-provider :locale="locale">
                     <a-pagination
                         @change="changePage"
@@ -668,6 +668,7 @@ export default {
             }
         }
     }
+    
     .more{
         cursor: pointer;
         user-select: none;

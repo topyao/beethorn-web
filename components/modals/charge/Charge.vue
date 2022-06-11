@@ -45,21 +45,18 @@
 
             <div class="pay_options">
                 <ul>
-                    <li :class="payActiveKey == 1 ? 'picked':''">
-                        <a-button @click="payPicked(1)" class="pay_button" icon="alipay-circle">
+                    <li v-for="(item) in payMode" :key="item" :class="payActiveKey == item ? 'picked':''">
+                        <a-button v-if="item == 1" @click="payPicked(item)" class="pay_button" icon="alipay-circle">
                             支付宝
                         </a-button>
-                    </li>
-                    <li :class="payActiveKey == 2 ? 'picked':''">
-                        <a-button  @click="payPicked(2)" class="pay_button"  icon="wechat">
+                        <a-button v-if="item == 2" @click="payPicked(item)" class="pay_button"  icon="wechat">
                             微信
                         </a-button>
-                    </li>
-                    <li :class="payActiveKey == 3 ? 'picked':''">
-                        <a-button @click="payPicked(3)" class="pay_button"  icon="wallet">
+                        <a-button v-if="item == 3" @click="payPicked(item)" class="pay_button"  icon="wallet">
                             余额
                         </a-button>
                     </li>
+                   
                 </ul>
             </div>
 
@@ -83,7 +80,7 @@
 <script>
 import Avatar from "@/components/avatar/avatar"
 import api from "@/api/index"
-
+import { mapState } from "vuex"
 // import wsConnection from "@/service/websocket" 
 // import router from '../../router'
 export default {
@@ -93,6 +90,7 @@ export default {
     data() {
         return {
             isGoPay:1,
+            payMode:[],
 
             priceActiveKey:0,
             priceList:[20,50,100,500,1000],
@@ -111,6 +109,9 @@ export default {
             isTrue: false,
             state: null // 准备（prepare） 确定（ ascertain） 取消（cancel）
         };
+    },
+    computed:{
+        ...mapState(["pay"])
     },
     methods: {
 
@@ -134,6 +135,8 @@ export default {
                 )
             }
             this.balance = res.data.balance
+            this.payMode = this.pay.payMode
+
 
             this.open();
             return new Promise((resolve, reject) => {

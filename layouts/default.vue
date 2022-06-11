@@ -10,7 +10,7 @@
               placeholder="请输入搜索内容" 
               style="width: 200px" @search="onSearch" />
             <ul class="top-menu">
-              <li>
+              <!-- <li>
                 <nuxt-link :to="`/nav`">
                   导航
                 </nuxt-link>
@@ -24,7 +24,7 @@
                 <nuxt-link :to="`/vip`">
                   开通会员
                 </nuxt-link>
-              </li>
+              </li> -->
               <li>
                 <nuxt-link :to="`/member`">
                   创作中心
@@ -51,7 +51,7 @@
                     </nuxt-link>
                   </li>
                   <li class="item">
-                    <nuxt-link :class="selectedKeys[0] == '/feed' ? 'active' : ''" class="link" :to="`/feed`">
+                    <nuxt-link :class="selectedKeys[0] == '/home' ? 'active' : ''" class="link" :to="`/feed`">
                       社区
                     </nuxt-link>
                   </li>

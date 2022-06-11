@@ -231,6 +231,7 @@ export default {
             if (this.mode == 1 || this.mode == 2) {
                 const qrRes = await this.$axios.post(api.postRechargePay,{code:res.data.code})
                 if (qrRes.code != 1) {
+                    this.throttl(10000)
                     this.$message.error(
                         qrRes.message,
                         3
@@ -238,10 +239,10 @@ export default {
                     return
                 }
                 this.ascertain()
-                this.throttl(5000)
+                this.throttl(10000)
                 this.$RechargeQr("用户充值",formData.money,this.mode,qrRes.data.info.qrCode,qrRes.data.info.code).then((res)=>{
                     if (res != false) {
-                        this.throttl(5000)
+                        this.throttl(10000)
                         this.ascertain()
                     }
                 }).catch((err)=>{
@@ -249,7 +250,7 @@ export default {
                 })
             }else{
                 this.ascertain()
-                this.throttl(5000)
+                this.throttl(10000)
             }
 
         
