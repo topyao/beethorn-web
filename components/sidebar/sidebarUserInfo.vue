@@ -80,7 +80,7 @@ export default {
                 this.info.fans += 1
             }
             this.info.isFollow = !this.info.isFollow
-            const res = await this.$axios.post(api.postUserFollow,{id:this.info.userId})
+            const res = await this.$axios.post(api.postUserFollow,{id:this.info.id})
             if (res.code != 1) {
                 this.$message.error(
                     res.message,
@@ -100,12 +100,12 @@ export default {
                 this.$Auth("login","登录","快速登录")
                 return
             }
-            
             const product = {
-                detailId:this.info.userId,
+                detailId:this.info.id,
                 detailModule:MODULE.USER,
                 orderType: ORDERTYPE.CD,
             }
+
 
             this.$Charge("充电",product,this.info.avatar,this.info.nickName).then(async (res)=>{
                 if (res != false) {

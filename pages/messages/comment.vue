@@ -15,8 +15,8 @@
                                 <h2>{{item.detailInfo.fromUser.nickName}}</h2>
                                 <p class="item-info-date">{{item.createTime | resetData}}</p>
                             </div>
-                            <div class="item-info-content">
-                                <h2 class="content">{{item.content}}</h2>
+                            <div class="item-info-content" @click="go(item.detailInfo.detail.id,item.detailInfo.detail.module)">
+                                <h2 class="content">在《{{item.detailInfo.detail.title}}》的{{item.detailInfo.detail.module | resetModuleText}}内回答：{{item.content}}</h2>
                                 <span>前往</span>
                             </div>
                         </div>
@@ -72,6 +72,9 @@
             }
             .notice-list-item-info{
                 flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
                 .item-info-title{
                     display: flex;
                     justify-content: space-between;
@@ -94,7 +97,6 @@
                 .item-info-content{
                     color: #8590a6;
                     background: #f5f5f5;
-                    margin-bottom: 8px;
                     margin-top: 5px;
                     padding: 5px;
                     display: flex;
@@ -133,6 +135,26 @@ export default {
     components:{
         Avatar
     },
+    filters:{
+        resetModuleText(e){
+            switch (e) {
+                case MODULE.AUDIO:
+                    return "音频"
+                case MODULE.ARTICLE:
+                    return "文章"
+                case MODULE.VIDEO:
+                    return "视频"
+                case MODULE.RESOURCE:
+                    return "资源"
+                case MODULE.EDU:
+                    return "课程"
+                case MODULE.TOPIC:
+                    return "帖子"
+                default:
+                    return "无"
+            }
+        }
+    },
     head(){
         return this.$seo(`评论通知-${this.base.title}`,`评论通知`,[{
             hid:"fiber",
@@ -161,6 +183,32 @@ export default {
        this.getData()
     },
     methods:{
+        go(e,m){
+            switch (m) {
+                case MODULE.AUDIO:
+                    this.$router.push(`/${MODULE.AUDIO}/${e}`)
+                    return
+                case MODULE.ARTICLE:
+                    this.$router.push(`/${MODULE.ARTICLE}/${e}`)
+                    return
+                case MODULE.VIDEO:
+                    this.$router.push(`/${MODULE.VIDEO}/${e}`)
+                    return
+                case MODULE.RESOURCE:
+                    this.$router.push(`/${MODULE.RESOURCE}/${e}`)
+                    return
+                case MODULE.EDU:
+                    this.$router.push(`/course/${e}`)
+                    return
+                case MODULE.TOPIC:
+                    this.$router.push(`/feed/${e}`)
+                    return
+                default:
+                    this.$router.push(`/`)
+                    return
+            }
+            
+        },
         changePage(page,limit){
             this.queryParam.limit = limit
             this.queryParam.page = page

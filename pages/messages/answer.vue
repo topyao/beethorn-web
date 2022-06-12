@@ -9,14 +9,14 @@
             <ul>
                 <li v-for="(item,index) in list" :key="index">
                     <div class="notice-list-item">
-                        <Avatar :src="item.detailInfo.fromUser.cover+'@w60_h60'" :size="62" />
+                        <Avatar :src="item.detailInfo.fromUser.avatar+'@w60_h60'" :size="62" />
                         <div class="notice-list-item-info">
                             <div class="item-info-title">
                                 <h2>{{item.detailInfo.fromUser.nickName}}</h2>
                                 <p class="item-info-date">{{item.createTime | resetData}}</p>
                             </div>
-                            <div class="item-info-content">
-                                <h2 class="content">{{item.content}}</h2>
+                            <div class="item-info-content" @click="go(item.detailInfo.detail.id)">
+                                <h2 class="content">在《{{item.detailInfo.detail.title}}》的帖子内回答：{{item.content}}</h2>
                                 <span>前往</span>
                             </div>
                         </div>
@@ -71,6 +71,9 @@
                 margin-right: 10px;
             }
             .notice-list-item-info{
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
                 flex: 1;
                 .item-info-title{
                     display: flex;
@@ -94,7 +97,6 @@
                 .item-info-content{
                     color: #8590a6;
                     background: #f5f5f5;
-                    margin-bottom: 8px;
                     margin-top: 5px;
                     padding: 5px;
                     display: flex;
@@ -161,6 +163,9 @@ export default {
        this.getData()
     },
     methods:{
+        go(e){
+            this.$router.push(`/feed/${e}`)
+        },
         changePage(page,limit){
             this.queryParam.limit = limit
             this.queryParam.page = page

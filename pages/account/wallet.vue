@@ -214,8 +214,8 @@
                         <a-select-option :value="ORDERTYPE.BUYZY">
                             购买内容
                         </a-select-option>
-                        <a-select-option :value="ORDERTYPE.VIEWANSWER">
-                            查看付费答案
+                        <a-select-option :value="ORDERTYPE.VIEWFEED">
+                            查看付费内容
                         </a-select-option>
                         <a-select-option :value="ORDERTYPE.JOINCOURSE">
                             加入付费课程
@@ -432,8 +432,8 @@ export default {
                     return "加入圈子"
                 case ORDERTYPE.JOINCOURSE:
                     return "报名课程"
-                case ORDERTYPE.VIEWANSWER:
-                    return "查看付费答案"
+                case ORDERTYPE.VIEWFEED:
+                    return "查看付费内容"
                 case ORDERTYPE.OPENVIP:
                     return "开通付费会员"
                 case ORDERTYPE.VERIFY:

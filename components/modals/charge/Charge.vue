@@ -199,21 +199,27 @@ export default {
             let formData = {
                 payMethod:this.payActiveKey,
                 orderMoney:this.price,
-                authorId:this.product.detailId
+                authorId:this.product.detailId,
+                detailId:this.product.detailId
             }
             formData = Object.assign(this.product,formData)
             
             const res = await this.$axios.post(api.postOrderCreate,formData)
             if (res.code != 1) {
+                this.throttl(5000)
                 this.$message.error(
                     res.message,
                     3
                 )
+                this.throttl(5000)
+                // this.ascertain()
+                return
             }
             if (res.data.orderNum != null || res.data.orderNum != "") {
                 this.isGoPay = 3
                 const qrRes = await this.$axios.post(api.postOrderPay,{orderNum:res.data.orderNum})
                 if (qrRes.code != 1) {
+                    this.throttl(5000)
                     this.$message.error(
                         qrRes.message,
                         3

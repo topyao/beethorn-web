@@ -1,8 +1,8 @@
 <template>
     <div class="detail">
-        <div class="info" :style="{ width: design.width - 300 + 'px' }">
+        <div class="info" :style="{ width: design.width - 500 + 'px' }">
             <a-row :gutter="[{md:12}]">
-                <a-col :span="18">
+                <a-col :span="24">
                     <div class="feed-info">
                         <div class="user-info">
                             <div class="user">
@@ -32,17 +32,33 @@
                                 <span class="title">{{info.groupInfo.title}}</span>
                             </div>
                         </div>
-                        <div class="feed-centet">
-                            <div class="title">
-                                <span v-if="info.type == 2" class="question">问题</span>
-                                {{info.title}}
+                        <div class="feed-title">
+                            <span v-if="info.type == 2" class="question">问题</span>
+                            {{info.title}}
+                        </div>
+                        <div class="feed-hide-content" v-if="info.hideMode != HIDEMODE.PUBLIC && !info.isView">
+                            <div class="hide-text-icon">
+                                <a-icon type="lock" />
+                                <span class="text">
+                                    隐藏内容，{{info.hideMode | resetText}}
+                                </span>
                             </div>
-
+                            <div class="price" v-if="info.hideMode == HIDEMODE.PAY">
+                            {{base.currencySymbol}} {{info.price}}
+                            </div>
+                            <div class="vip-price" v-if="info.hideMode == HIDEMODE.PAY && vipPrice != 0">
+                            会员价格{{base.currencySymbol}} {{vipPrice}}
+                            </div>
+                            <a-button @click="pay" type="danger" ghost>
+                                支付
+                            </a-button>
+                        </div>
+                        <div class="feed-centet">
                             <div class="content" v-html="info.content"></div>
                             
                             <!-- 图片 -->
-                            <div v-if="info.type == 1 && info.files !=''">
-                                <ImageAdaptation :list="info.files"/>
+                            <div v-if="info.type == 1 && info.images !=''">
+                                <ImageAdaptation :list="info.images"/>
                             </div>
 
                             <!-- 链接 -->
@@ -93,9 +109,9 @@
                         <Answer :authorId="info.userInfo.id" :topicId="info.id"/>
                     </div>
                 </a-col>
-                <a-col :span="6">
+                <!-- <a-col :span="6">
                     <SidebarUserInfo :isFollow.sync="info.isFollow"  :info="info.userInfo"/>
-                </a-col>
+                </a-col> -->
             </a-row>
         </div>
     </div>
@@ -110,12 +126,27 @@ import Avatar from "@/components/avatar/avatar"
 import Comment from "@/components/comment/List"
 import SidebarUserInfo from "@/components/sidebar/sidebarUserInfo"
 
+import {ORDERTYPE} from "@/shared/order"
+import {HIDEMODE} from "@/shared/mode"
+
 import { mapState } from "vuex"
 import api from "@/api/index"
 export default {
     computed:{
         ...mapState(["design","title"]),
         ...mapState("user",["token","userInfo"]),
+    },
+    filters:{
+        resetText(v){
+            switch (v) {
+                case 2:
+                    return "支付费用阅读"
+                case 3:
+                    return "登录后阅读"
+                default:
+                    return "公开阅读"
+            }
+        },
     },
     components:{
         LinkAdaptation,
@@ -145,8 +176,8 @@ export default {
         if (res.code != 1) {
             redirect("/404")
         }
-        if (res.data.info.type == 1 && res.data.info.files != "") {
-            res.data.info.files = JSON.parse(res.data.info.files)
+        if (res.data.info.type == 1 && res.data.info.images != "") {
+            res.data.info.images = JSON.parse(res.data.info.images)
         }
 
         let num = res.data.info.content.match(/:{.*?}/g)
@@ -162,15 +193,60 @@ export default {
             });
         }
 
+        let discount = 0
+        let vipPrice = 0
+        if (store.state.user.userInfo.vip != null) {
+                discount = store.state.user.userInfo.vip.discount
+        }
+        if (discount != 0) {
+            let price = res.data.info.price
+            
+            let discountPrice = price - (price * discount)
+            vipPrice = discountPrice
+        }
         return {
             base:store.state.base,
             id:id,
             info:res.data.info,
-            isopenComment:true,
-            isopenAnswer:false,
+            vipPrice:vipPrice,
         }
     },
+    data(){
+        return{
+            HIDEMODE,
+            isopenComment:true,
+            isopenAnswer:false,
+            
+        }
+    },
+    mounted(){
+        
+    },
     methods: { 
+        async getData(){
+            const res = await this.$axios.get(api.getTopic,{params:{id:this.id}})
+    
+            if (res.code != 1) {
+                redirect("/404")
+            }
+            if (res.data.info.type == 1 && res.data.info.images != "") {
+                res.data.info.images = JSON.parse(res.data.info.images)
+            }
+
+            let num = res.data.info.content.match(/:{.*?}/g)
+            if (num != null) {
+                let emojiTmp = num.map((i)=>{
+                    return store.state.emojiList.filter((v)=>{
+                        return i == v.alias
+                    })
+                })
+                
+                emojiTmp.forEach(element => {
+                    res.data.info.content = res.data.info.content.replace(element[0].alias,`<img class="emoji-p" src="${element[0].link}"/>`)
+                });
+            }
+            this.info = res.data.info
+        },
         goRelated(){
             this.$router.push(`/${this.info.relatedInfo.module}/${this.info.relatedInfo.id}`)
         },
@@ -187,6 +263,36 @@ export default {
         openAnswer(){
             this.isopenComment = false
             this.isopenAnswer = !this.isopenAnswer
+        },
+        pay(){
+            if (this.token != null) {
+                const product = {
+                    detailId:this.info.id,
+                    detailModule:"topic",
+                    orderMoney:this.info.price,
+                    orderType: ORDERTYPE.VIEWFEED,
+                }
+                if (this.vipPrice != 0) {
+                    product.orderMoney = this.vipPrice
+                }
+                this.$Pay("查看帖子隐藏内容",product).then(async (res)=>{
+                    if (res != false) {
+                        
+                        this.$message.success(
+                            "成功购买",
+                            3
+                        )
+                        this.getData()
+                        // this.upadteView()
+                    }
+                }).catch((err)=>{
+                    console.log(err)
+                    // this.createForm.cover = undefined
+                })
+                
+            } else {
+                this.$Auth("login","登录","快速登录")
+            }
         },
         async postLike(){
             if (this.token == null) {
@@ -338,29 +444,57 @@ export default {
                     background: rgba(173, 173, 173, 0.16);
                 }
             }
+            .feed-title{
+                margin-top: 10px;
+                line-height: 20px;
+                font-size: 18px;
+                color: #0b0b37;
+                display: flex;
+                align-items: center;
+                .question{
+                    border-top-left-radius: 13px;
+                    border-bottom-right-radius: 13px;
+                    color: white;
+                    font-size: 12px;
+                    padding: 3px 8px;
+                    background: linear-gradient(140deg, #039ab3 10%, #58dbcf 90%);
+                }
+            }
+            .feed-hide-content{
+                position: relative;
+                background: #f5f6f7;
+                max-width: 390px;
+                width: 100%;
+                margin-top: 10px;
+                padding: 16px;
+                box-sizing: border-box; 
+                .hide-text-icon{
+                    display: flex;
+                    align-items: center;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid #e5e5e5;
+                    margin-bottom: 10px;
+                    font-size: 13px;
+                    line-height: 1;
+                    .text{
+                        margin-left: 5px;
+                    }
+                }
+                .price{
+                    margin: 16px 0;
+                }
+                .vip-price{
+                    margin: 16px 0;
+                    color: red;
+                }
+            }
             .feed-centet{
                 margin-top: 10px;
-                    .title{
-                        line-height: 20px;
-                        font-size: 18px;
-                        color: #0b0b37;
-                        display: flex;
-                        align-items: center;
-                        .question{
-                            border-top-left-radius: 13px;
-                            border-bottom-right-radius: 13px;
-                            color: white;
-                            font-size: 12px;
-                            padding: 3px 8px;
-                            background: linear-gradient(140deg, #039ab3 10%, #58dbcf 90%);
-                        }
-                    }
-                    .content{
-                        margin: 10px 0;
-                        line-height: 20px;
-                        font-size: 14px;
-                        color: #0b0b37;
-                    }
+                .content{
+                    line-height: 20px;
+                    font-size: 14px;
+                    color: #0b0b37;
+                }
             }
             .feed-bottom{
                 margin-top: 10px;

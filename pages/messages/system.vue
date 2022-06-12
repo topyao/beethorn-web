@@ -90,6 +90,7 @@
                     font-size: 14px;
                 }
                 .item-info-content{
+                    margin-top: 5px;
                     font-size: 12px;
                     color: #8590a6;
                     background: #f5f5f5;

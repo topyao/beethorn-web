@@ -106,7 +106,7 @@ export default {
             queryParam:{
                 page:1,
                 limit: 6,
-                userId:null,
+                authorId:null,
                 mode: 1,
                 module:""
             },
@@ -119,7 +119,7 @@ export default {
         }
     },
     mounted () {
-        this.queryParam.userId = parseInt(this.$route.params.id)
+        this.queryParam.authorId = parseInt(this.$route.params.id)
         this.getData()
     },
     methods:{

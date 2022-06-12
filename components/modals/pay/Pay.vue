@@ -131,7 +131,7 @@ export default {
             
             if (this.product.orderMoney == 0 || this.product.orderMoney == null) {
                 this.$message.error(
-                    "请选择或输入充值金额",
+                    "请选择或输入金额",
                     3
                 )
                 return
@@ -139,7 +139,7 @@ export default {
 
             if (this.payActiveKey == 0) {
                 this.$message.error(
-                    "请选择充值方式",
+                    "请选择支付方式",
                     3
                 )
                 return
@@ -165,6 +165,7 @@ export default {
             const res = await this.$axios.post(api.postOrderCreate,formData)
 
             if (res.code != 1) {
+                this.throttl(10000)
                 this.$message.error(
                     res.message,
                     3

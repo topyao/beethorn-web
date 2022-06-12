@@ -164,7 +164,6 @@ export default {
         }
     },
     mounted(){
-        
         if (this.info.hideMode == HIDEMODE.PAY) {
             let discount = 0
             if (this.userInfo.vip != null) {
@@ -178,7 +177,31 @@ export default {
             }
         }
     },
-    methods: { 
+    methods: {
+        async getData(){
+            const res = await this.$axios.get(api.getTopic,{params:{id:this.info.id}})
+    
+            if (res.code != 1) {
+                redirect("/404")
+            }
+            if (res.data.info.type == 1 && res.data.info.images != "") {
+                res.data.info.images = JSON.parse(res.data.info.images)
+            }
+
+            let num = res.data.info.content.match(/:{.*?}/g)
+            if (num != null) {
+                let emojiTmp = num.map((i)=>{
+                    return store.state.emojiList.filter((v)=>{
+                        return i == v.alias
+                    })
+                })
+                
+                emojiTmp.forEach(element => {
+                    res.data.info.content = res.data.info.content.replace(element[0].alias,`<img class="emoji-p" src="${element[0].link}"/>`)
+                });
+            }
+            this.info = res.data.info
+        },
         goRelated(){
             this.$router.push(`/${this.info.relatedInfo.module}/${this.info.relatedInfo.id}`)
         },
@@ -209,7 +232,7 @@ export default {
                 }
                 this.$Pay("查看帖子隐藏内容",product).then(async (res)=>{
                     if (res != false) {
-                        this.$emit('upadteView')
+                        // this.getData()
                         this.$message.success(
                             "成功购买",
                             3
@@ -337,6 +360,7 @@ export default {
         display: flex;
         align-items: center;
         .question{
+            margin-right: 5px;
             border-top-left-radius: 13px;
             border-bottom-right-radius: 13px;
             color: white;

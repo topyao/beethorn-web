@@ -55,16 +55,15 @@ export default {
                 page: 1,
                 limit: 8,
                 module: "topic",
-                userId:0,
+                authorId:0,
                 mode: 2,
-                type: 0,
             },
             list:[],
             isShow:false
         }
     },
     mounted(){
-        this.queryParam.userId = parseInt(this.$route.params.id)
+        this.queryParam.authorId = parseInt(this.$route.params.id)
         this.getTopicList()
         window.addEventListener('scroll', this.scrollList)
     },
@@ -99,8 +98,25 @@ export default {
                 return
             }
             res.data.list = res.data.list == null ? [] : res.data.list.map((item)=>{
-                if (item.type == 1 && item.files != "") {
-                    item.files = JSON.parse(item.files)
+                if (item.type == 1 && item.images != "") {
+                    item.images = JSON.parse(item.images)
+                }
+
+                // 重制表情标题内容
+                let num = item.content.match(/:{.*?}/g)
+                
+                if (num != null) {
+                    let emojiTmp = num.map((i)=>{
+                        return this.emojiList.filter((v)=>{
+                            return i == v.alias
+                        })
+                    })
+                    
+                    emojiTmp.forEach(element => {
+                       
+                        item.content = item.content.replace(element[0].alias,`<img class="emoji-p" src="${element[0].link}"/>`)
+                        // console.log(element)
+                    });
                 }
                 return item
             })
