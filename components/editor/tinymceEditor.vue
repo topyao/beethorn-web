@@ -46,7 +46,7 @@ export default {
         default: 'code,lists,advlist,autoresize,codesample,link,hr,fullscreen,quickbars,image,paste'
       },
       toolbar: {
-        type: [String, Array],
+        type: [String, Array,Boolean],
         default: 'undo redo | formatselect  | h2Title hr bold italic forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | lists imagelibrary  | removeformat'
       }
     },
@@ -70,10 +70,8 @@ export default {
                 remove_script_host: false,
                 image_advtab:true,
                 plugins: this.plugins,
-                toolbar1: this.toolbar, 
+                toolbar: this.toolbar, 
                 block_formats:"Paragraph=p;标题1=h1;标题2=h2;",
-                // plugins: 'code,lists,advlist,autoresize,codesample,link,hr,fullscreen,quickbars,image,paste',
-                // toolbar1:'bold italic forecolor backcolor | h2Title blockquote codesample numlist bullist | link imagelibrary hr | removeformat  | fullscreen',
                 image_caption: true,
                 content_style: 'img {max-width: 100%;}',
                 oninit : "setPlainText",

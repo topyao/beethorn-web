@@ -12,6 +12,7 @@ const api = {
     getSystemHotSearch: web + "/system/hotSearch",
     getSystemHotUser: web + "/system/hotUser",
     getSystemSearch: web + "/system/search",
+    getSystemEmoji: web + "/system/emoji",
 
     // -------------------------autn 接口
     getImageCaptcha: web + "/auth/image/captcha",

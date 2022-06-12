@@ -33,10 +33,12 @@
                             </div>
                         </div>
                         <div class="feed-centet">
-                            <p>
+                            <div class="title">
                                 <span v-if="info.type == 2" class="question">问题</span>
                                 {{info.title}}
-                            </p>
+                            </div>
+
+                            <div class="content" v-html="info.content"></div>
                             
                             <!-- 图片 -->
                             <div v-if="info.type == 1 && info.files !=''">
@@ -67,6 +69,7 @@
                                         <a-menu-item key="2" 
                                             v-clipboard:copy="`${base.url}/feed/${info.id}`"
                                             v-clipboard:success="onCopy"><a-icon type="copy" />分享</a-menu-item>
+                                        <a-menu-item v-if="info.userInfo.id == userInfo.userId" key="3" @click="remove"><a-icon type="delete" />删除</a-menu-item>
                                     </a-menu>
                                 </a-dropdown>
                             </div>
@@ -146,6 +149,19 @@ export default {
             res.data.info.files = JSON.parse(res.data.info.files)
         }
 
+        let num = res.data.info.content.match(/:{.*?}/g)
+        if (num != null) {
+            let emojiTmp = num.map((i)=>{
+                return store.state.emojiList.filter((v)=>{
+                    return i == v.alias
+                })
+            })
+            
+            emojiTmp.forEach(element => {
+                res.data.info.content = res.data.info.content.replace(element[0].alias,`<img class="emoji-p" src="${element[0].link}"/>`)
+            });
+        }
+
         return {
             base:store.state.base,
             id:id,
@@ -208,6 +224,10 @@ export default {
             )
         },
         async remove(){
+            if (this.token == null) {
+                this.$Auth("login","登录","快速登录")
+                return
+            }
             this.$confirm({
                 okText:"确定",
                 cancelText:"取消",
@@ -233,7 +253,7 @@ export default {
                     )
                     return
                 }
-                 this.$router.push({ name: "feed"})
+                this.$router.push({ path: "/"})
             } catch (error) {
                 console.log(error)
                 setTimeout(() => {
@@ -320,26 +340,27 @@ export default {
             }
             .feed-centet{
                 margin-top: 10px;
-                p{
-                    cursor: pointer;
-                    user-select: none;
-                    line-height: 20px;
-                    font-size: 16px;
-                    color: #0b0b37;
-                    display: -webkit-box;
-                    -webkit-box-orient: vertical;
-                    -webkit-line-clamp: 2;
-                    overflow: hidden;
-                    word-break: break-all;
-                    .question{
-                        border-top-left-radius: 13px;
-                        border-bottom-right-radius: 13px;
-                        color: white;
-                        font-size: 12px;
-                        padding: 3px 8px;
-                        background: linear-gradient(140deg, #039ab3 10%, #58dbcf 90%);
+                    .title{
+                        line-height: 20px;
+                        font-size: 18px;
+                        color: #0b0b37;
+                        display: flex;
+                        align-items: center;
+                        .question{
+                            border-top-left-radius: 13px;
+                            border-bottom-right-radius: 13px;
+                            color: white;
+                            font-size: 12px;
+                            padding: 3px 8px;
+                            background: linear-gradient(140deg, #039ab3 10%, #58dbcf 90%);
+                        }
                     }
-                }
+                    .content{
+                        margin: 10px 0;
+                        line-height: 20px;
+                        font-size: 14px;
+                        color: #0b0b37;
+                    }
             }
             .feed-bottom{
                 margin-top: 10px;

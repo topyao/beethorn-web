@@ -11,6 +11,7 @@ export const state = () => ({
     },
     file:{},
     pay:{},
+    emojiList:[]
 })
 
 export const mutations = {
@@ -28,6 +29,9 @@ export const mutations = {
     },
     M_UPDATE_BASE_THEME: (state, theme) => {
         state.base.theme = theme
+    },
+    M_UPDATE_EMOJI: (state, emoji) => {
+        state.emojiList = emoji
     },
 }  
 
@@ -52,6 +56,11 @@ export const actions = {
             //通知消息
             const noticeRes = await $axios.get(api.getNoticeCount)
             commit("notice/M_UPDATE_HAVE_NOTICE",noticeRes.data.info)
+
+            // 获取表情列表
+            const emojiRes = await $axios.get(api.getSystemEmoji)
+            // console.log(emojiRes)
+            commit("M_UPDATE_EMOJI",emojiRes.data.list)
            
         }
     },

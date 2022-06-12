@@ -49,6 +49,7 @@ export default {
     },
     computed:{
         ...mapState(["design"]),
+        ...mapState(["emojiList"]),
         ...mapState("user",["token","userInfo"]),
     },
     async asyncData({store}){
@@ -120,10 +121,29 @@ export default {
         
             res.data.list = res.data.list == null ? [] :res.data.list.map((item)=>{
                 if (this.queryParam.module == MODULE.TOPIC) {
-                    if (item.type == 1 && item.files != "") {
-                        item.files = JSON.parse(item.files)
+                    if (item.type == 1 && item.images != "") {
+                        item.images = JSON.parse(item.images)
                     }
                 }
+
+                // 重制表情标题内容
+                let num = item.content.match(/:{.*?}/g)
+                
+                if (num != null) {
+                    let emojiTmp = num.map((i)=>{
+                        return this.emojiList.filter((v)=>{
+                            return i == v.alias
+                        })
+                    })
+                    
+                    emojiTmp.forEach(element => {
+                       
+                        item.content = item.content.replace(element[0].alias,`<img class="emoji-p" src="${element[0].link}"/>`)
+                        // console.log(element)
+                    });
+                }
+                
+                
                 return item
             })
            

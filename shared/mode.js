@@ -6,6 +6,14 @@ const MODE = {
 	FOLLOW  : 5 // 关注的
 }
 
-export {
-    MODE
+const HIDEMODE = {
+    PUBLIC:1, // 公开
+    PAY:2, // 支付
+    LOGIN:3, // 登录
 }
+
+export {
+    MODE,
+    HIDEMODE
+}
+

@@ -65,28 +65,29 @@
                         </div>
                     </div>
                 </div>
-                <div class="create-content">
+                <div class="create-title">
+                    <a-input
+                        size="large"
+                        :disabled="this.token == null"
+                        @change="changeTitle"
+                        placeholder="请写入标题" 
+                        v-model="createForm.title"
+                        :maxLength="256"
+                    />
                     <a-textarea  
+                    id="editor-box" 
                     :disabled="this.token == null"
-                    id="feedInput" 
                     :maxLength="256"
-                     @change="changeTitle" 
-                     placeholder="请写点内容" 
-                     v-model="createForm.title" 
+                     placeholder="填写内容（选填）" 
+                     v-model="createForm.content" 
                      :rows="4" />
                     <div class="create-text-num">
-                        <a-popover trigger="click"  placement="bottom">
-                            <template slot="content">
-                                <div class="emoji-box">
-                                    <button v-for="(item,index) in emoji" 
-                                        @click="selectEmoji(item)" 
-                                        :key="index">
-                                        {{item}}
-                                    </button>
-                                </div>
-                            </template>
-                            <a-icon type="smile" />
-                        </a-popover>
+                        <div class="select-emoji">
+                            <a-icon @click="openEmoji" class="icon" type="smile" />
+                            <div v-if="isOpenEmoji" class="emoji-list">
+                                <img  @click="selectEmoji(item)"  v-for="(item,index) in emojiList" :key="index" :src="item.link" />
+                            </div>
+                        </div>
                         <a-progress type="circle"  :percent="createForm.titleCount" :width="20" >
                             <template #format="percent">
                                 <span v-if="createForm.titleCount < 100">{{ percent }}</span>
@@ -98,7 +99,7 @@
                 
                 <div class="create-meta-box">
                     <div v-if="feedMetaOptions.imgVisible" class="create-meta img">
-                        <p>最多上传5张图片</p>
+                        <p>最多上传9张图片</p>
                         <ul>
                             <li v-for="(item,index) in createForm.imgList" :key="index">
                                 <div>
@@ -107,6 +108,22 @@
                                 </div>
                             </li>
                         </ul>
+                    </div>
+                    <div v-if="feedMetaOptions.authVisible" class="create-meta auth">
+                        <div class="hide-checkbox">
+                            <span>查看隐藏内容方式：</span>
+                            <a-radio-group v-model="createForm.hideMode" :options="createForm.hideModeOptions" />
+                        </div>
+                        <div class="hide-checkbox" v-if="createForm.hideMode == 2">
+                            <span>请输入查看所需金额：</span>
+                            <a-input-number 
+                                v-model="createForm.price"
+                                placeholder="如果权限设置为付费下载，请设置付费金额"
+                                :style="{ width: '300px' }"
+                                :precision="2"
+                                :min="0"
+                            />
+                        </div>
                     </div>
                     <!-- <div v-if="feedMetaOptions.videoVisible" class="create-meta video">
                         <p>只能上传一个视频</p>
@@ -123,8 +140,9 @@
 
                 <div class="create-footer">
                     <ul class="create-footer-l">
-                        <li class="create-footer-l-item">
-                            <a-icon type="camera" @click="selectImg"/>
+                        <li @click="selectImg" class="create-footer-l-item">
+                            <a-icon theme="filled" type="file-image" />
+                            <span>图片</span>
                         </li>
                         <!-- <li class="create-footer-l-item">
                             <a-icon type="video-camera" @click="selectVideo"/>
@@ -133,9 +151,15 @@
                             <span>@</span>
                         </li> -->
                     </ul>
-                    <a-button @click="postTopic" type="primary">
-                        发布
-                    </a-button>
+                    <div class="create-footer-r">
+                        <div class="auth" @click="selectAuth">
+                            <a-icon class="icon" type="eye" theme="filled"/>
+                            <span class="sp">权限</span>
+                        </div>
+                        <a-button @click="postTopic" type="primary">
+                            发布
+                        </a-button>
+                    </div>
                 </div>
 
                 <div class="create-mask" v-if="token == null"></div>
@@ -195,9 +219,9 @@
         </div>
         <div class="sidebbr-list">
             <SidebarUserInfo v-if="token != null" :info="userInfo"/>
-                <SidebarClockIn/> 
-                <!-- <SidebarQuestionList /> -->
-                <SidebarHotTopic />
+            <SidebarClockIn/> 
+            <!-- <SidebarQuestionList /> -->
+            <SidebarHotTopic />
         </div>
     </div>
 </template>
@@ -211,11 +235,13 @@ import SidebarUserInfo from "@/components/sidebar/sidebarUserInfo"
 import SidebarClockIn from "@/components/sidebar/sidebarClockIn"
 import SidbarAdv from "@/components/sidebar/sidbarAdv"
 
+// import TopicEdior from "@/components/editor/topicEdior"
 
 import api from "@/api/index"
 import { mapState } from "vuex"
 // import {MODE} from "@/shared/mode"
 import {MODULE} from "@/shared/module"
+
 export default {
     props:{
         hotGroupList:{
@@ -250,6 +276,7 @@ export default {
         },
     },
     components:{
+        // TopicEdior,
         FeedItem,
         SidebarHotUserList,
         SidebarHotTopic,
@@ -260,40 +287,27 @@ export default {
     },
     data(){
         return{
-            emoji:[
-                '😁',
-                '😊',
-                '😎',
-                '😤',
-                '😥',
-                '😂',
-                '😍',
-                '😏',
-                '😙',
-                '😟',
-                '😖',
-                '😜',
-                '😱',
-                '😲',
-                '😭',
-                '😚',
-                '💀',
-                '👻',
-                '👍',
-                '💪',
-                '👊',
-            ],
+            isOpenEmoji:false,
             feedMetaOptions:{
                 imgVisible:false,
                 videoVisible:false,
+                authVisible:false,
             },
             createForm:{
                 titleCount:0,
                 imgList:[],
                 groupInfo:null,
                 title:"",
+                content:"",
                 type: 1,
                 video:null,
+                hideMode:1,
+                hideModeOptions:[
+                    { label: '公开', value: 1 },
+                    { label: '付费', value: 2 },
+                    { label: '登录', value: 3 },
+                ],
+                price:undefined
             },
             searchGroup:{
                 isSearchGroup: false,
@@ -306,10 +320,12 @@ export default {
     },
     computed:{
         ...mapState("user",["userInfo","token"]),
+        ...mapState(["emojiList"]),
     },
     methods:{
         // 提交
         async postTopic(){
+            
             if (this.token == null) {
                 this.$Auth("login","登录","快速登录")
                 return
@@ -328,20 +344,30 @@ export default {
                 )
                 return
             }
+
+            if (this.createForm.hideMode == 2 && (this.createForm.price == undefined || this.createForm.price == null || this.createForm.price == 0 )) {
+                this.$message.error(
+                    "请设置查阅费用",
+                    3
+                )
+                return
+            }
+            
+
+           
             let formData = {
                 title:this.createForm.title,
+                content:this.createForm.content,
                 type:this.createForm.type,
                 files:"",
-                groupId:this.createForm.groupInfo.id
+                groupId:this.createForm.groupInfo.id,
+                hideMode: this.createForm.hideMode,
+                price: this.createForm.price,
             }
+            formData.content = formData.content.replace(/\n/g,"<br>");  
             if (this.createForm.imgList.length > 0 && this.createForm.video == null) {
                 formData.files = JSON.stringify(this.createForm.imgList)
             }
-
-            // if (this.createForm.imgList.length < 1 && this.createForm.video != null) {
-            //     formData.files = this.createForm.video
-            //     formData.type = 2
-            // }
 
             try {
                 let res = await this.$axios.post(api.postTopicCreate,formData)
@@ -360,10 +386,15 @@ export default {
                 this.createForm.imgList = []
                 this.createForm.groupInfo = null
                 this.createForm.title = ""
+                this.createForm.content = ""
                 this.createForm.video = null
+                this.isOpenEmoji = false
                 this.feedMetaOptions.imgVisible = false
                 this.feedMetaOptions.videoVisible = false
                 this.createForm.titleCount = 0
+                this.createForm.hideContent = []
+                this.createForm.hideMode = 1
+                this.createForm.price = undefined
 
 
                 this.$emit("resetList")
@@ -431,23 +462,27 @@ export default {
         changeTitle(){
             this.createForm.titleCount = this.createForm.title.length
         },
+        openEmoji(){
+            this.isOpenEmoji = !this.isOpenEmoji
+        },
         selectEmoji(e){
             if (this.token == null) {
                 this.$Auth("login","登录","快速登录")
                 return
             }
-            var elInput =document.getElementById("feedInput");
+            
+
+            var elInput =document.getElementById("editor-box");
             var startPos = elInput.selectionStart;
             var endPos = elInput.selectionEnd;
+           
             if(startPos ===undefined|| endPos ===undefined)return 
-            var txt = this.createForm.title;
-            var result = txt.substring(0, startPos) + e + txt.substring(endPos)    
-            this.createForm.title = result;    
-            elInput.focus();  
-            this.$nextTick(() => {
-                elInput.selectionStart = startPos + e.length;    
-                elInput.selectionEnd = startPos + e.length;
-            })
+            var txt = this.createForm.content;
+            var result = `${txt.substring(0, startPos)}${e.alias}${txt.substring(endPos)}`
+            this.createForm.content = result;    
+            elInput.focus(); 
+            elInput.selectionStart = startPos + e.length;    
+            elInput.selectionEnd = startPos + e.length; 
         },
         selectImg(){
             if (this.token == null) {
@@ -456,15 +491,16 @@ export default {
             }
             this.$Upload().then((res)=>{
                 if (res != false) {
-                    if (this.createForm.imgList.length <= 4) {
+                    if (this.createForm.imgList.length <= 8) {
                         this.createForm.imgList.push(res)
                     }else{
                         this.$message.error(
-                           "上传图片数量最多只能为5张",
+                           "上传图片数量最多只能为9张",
                             3
                         )
                         return
                     }
+                    
                     this.createForm.video = null
                     this.feedMetaOptions.imgVisible = true
                     this.feedMetaOptions.videoVisible = false 
@@ -475,18 +511,21 @@ export default {
             })
             
         },
+        selectAuth(){
+            this.feedMetaOptions.authVisible = !this.feedMetaOptions.authVisible
+        },
         // ---------- 删除
         removeImg(i){
             this.createForm.imgList.splice(i,1)
             if (this.createForm.imgList.length == 0) {
-                 this.feedMetaOptions.imgVisible = false
+                this.feedMetaOptions.imgVisible = false
             }
         },
         removeVideo(){
             this.createForm.video = null
             this.feedMetaOptions.videoVisible = false 
         },
-    }
+    },
 }
 </script>
 
@@ -533,7 +572,6 @@ export default {
                             // left: 120px;
                             top: 100%;
                             width: 300px;
-                            // height: 200px;
                             margin-top: 10px;
                             background: #fff;
                             border-radius: 4px;
@@ -587,7 +625,7 @@ export default {
                     }
                 }
             }
-            .create-content{
+            .create-title{
                 margin: 10px 0;
                 border: 1px solid #f5f5f5;
                 /deep/ .ant-input{
@@ -603,8 +641,45 @@ export default {
                     align-items: center;
                     padding: 0 10px;
                     height: 30px;
-                    /deep/ .anticon{
-                        font-size: 18.8px;
+                    .select-emoji{
+                        z-index: 2;
+                        position: relative;
+                        .icon{
+                            cursor: pointer;
+                            font-size: 18.8px;
+                        }
+                        .emoji-list{
+                            position: absolute;
+                            padding: 10px;
+                            left: -10px;
+                            top: 100%;
+                            width: 262px;
+                            // height: 200px;
+                            margin-top: 10px;
+                            background: #fff;
+                            border-radius: 4px;
+                            box-shadow: 0px 10px 12px 0px rgb(133 144 166 / 15%);
+                            border: 1px solid rgba(133, 144, 166, 0.1);
+                            img{
+                                cursor: pointer;
+                                user-select: none;
+                                width: 30px;
+                                height: 30px;
+                            }
+                        }
+                        .emoji-list::before{
+                            content: "";
+                            position: absolute;
+                            width: 12px;
+                            height: 12px;
+                            top: -8px;
+                            left: 11px;
+                            border-top: 1px solid rgba(133, 144, 166, 0.1);
+                            border-left: 1px solid rgba(133, 144, 166, 0.1);
+                            -webkit-transform: rotate(45deg);
+                            transform: rotate(45deg);
+                            background: #fff;
+                        }
                     }
                     /deep/ .ant-progress{
                         /deep/ .ant-progress-text{
@@ -676,6 +751,16 @@ export default {
                                 }
                             }
                             
+                        }
+                    }
+                }
+                .auth{
+                    .hide-checkbox{
+                        margin: 10px;
+                        display: flex;
+                        align-items: center;
+                        span{
+                            font-size: 13px;
                         }
                     }
                 }
@@ -758,12 +843,40 @@ export default {
                         margin-right: 20px;
                         cursor: pointer;
                         user-select: none;
+                        span{
+                            font-size: 14px;
+                        }
                     }
+                    
                 }
                 .create-footer-r{
-                    cursor: pointer;
-                    font-size: 20px;
+                    display: flex;
+                    align-items: center;
+                    .auth{
+                        user-select: none;
+                        cursor: pointer;
+                        margin-right: 15px;
+                        display: flex;
+                        align-items: center;
+                        .icon{
+                            margin-right: 5px;
+                            font-size: 18px;
+                        }
+                        .sp{
+                            line-height: 20px;
+                            font-size: 12px;
+                        }
+                    }
+                    .auth:hover{
+                        .icon{
+                            color: red;
+                        }
+                        .sp{
+                            color: red;
+                        }
+                    }
                 }
+                
             }
             .create-mask{
                 background: rgba(0, 0, 0,0.5);
